@@ -163,6 +163,9 @@ def perform_stage2_assessment(
         "created_at": assessment.created_at
     }
 
+# IMPORTANT: Static routes (/history, /compare) MUST come before the wildcard /{assessment_id} route
+# to prevent FastAPI from matching 'history' or 'compare' as an assessment ID.
+
 @router.get("/history", response_model=List[AssessmentSummary])
 def get_assessment_history(
     current_user: User = Depends(get_current_user),
@@ -186,6 +189,61 @@ def get_assessment_history(
         for a in assessments
     ]
 
+@router.get("/compare/{id1}/{id2}", response_model=ComparisonResponse)
+def compare_assessments(
+    id1: str,
+    id2: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    a1 = db.query(Assessment).filter(Assessment.id == id1, Assessment.user_id == current_user.id).first()
+    a2 = db.query(Assessment).filter(Assessment.id == id2, Assessment.user_id == current_user.id).first()
+
+    if not a1 or not a2:
+        raise HTTPException(status_code=404, detail="One or both assessments not found.")
+
+    # Order chronologically (a_old, a_new)
+    if a1.created_at > a2.created_at:
+        a_old, a_new = a2, a1
+    else:
+        a_old, a_new = a1, a2
+
+    score_diff = round(a_new.risk_score - a_old.risk_score, 3)
+    if score_diff > 0.05:
+        change_label = "Increased"
+        summary_msg = f"Your screening risk category has increased compared with your previous assessment on {a_old.created_at.strftime('%b %d, %Y')}."
+    elif score_diff < -0.05:
+        change_label = "Decreased"
+        summary_msg = f"Your screening risk score has improved compared with your previous assessment on {a_old.created_at.strftime('%b %d, %Y')}."
+    else:
+        change_label = "Stable"
+        summary_msg = "Your overall screening risk profile remains stable between assessments."
+
+    # Compare answers to highlight changed input factors
+    changed_factors = []
+    old_s1 = a_old.stage1_answers or {}
+    new_s1 = a_new.stage1_answers or {}
+
+    for k in set(list(old_s1.keys()) + list(new_s1.keys())):
+        v_old = old_s1.get(k)
+        v_new = new_s1.get(k)
+        if v_old != v_new:
+            changed_factors.append({
+                "factor_key": k,
+                "factor_name": k.replace("_", " ").title(),
+                "previous_value": str(v_old),
+                "current_value": str(v_new)
+            })
+
+    return {
+        "assessment_1": a_old,
+        "assessment_2": a_new,
+        "risk_change_label": change_label,
+        "score_difference": score_diff,
+        "changed_factors": changed_factors,
+        "summary_message": summary_msg
+    }
+
 @router.get("/{assessment_id}", response_model=AssessmentDetail)
 def get_assessment_by_id(
     assessment_id: str,
@@ -199,7 +257,22 @@ def get_assessment_by_id(
     )
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found.")
-    return assessment
+    return {
+        "id": assessment.id,
+        "user_id": assessment.user_id,
+        "created_at": assessment.created_at,
+        "primary_category": DISEASE_METADATA.get(assessment.primary_category, {}).get("name", assessment.primary_category.title()),
+        "overall_risk_level": assessment.overall_risk_level,
+        "risk_score": assessment.risk_score,
+        "stage1_results": assessment.stage1_results,
+        "stage2_disease": assessment.stage2_disease,
+        "stage2_results": assessment.stage2_results,
+        "top_contributing_factors": assessment.top_contributing_factors,
+        "specialist_referral": assessment.specialist_referral,
+        "consultation_recommendation": assessment.consultation_recommendation,
+        "trend_status": assessment.trend_status,
+        "model_version": assessment.model_version
+    }
 
 @router.get("/{assessment_id}/pdf")
 def download_assessment_pdf(
@@ -258,58 +331,3 @@ def download_assessment_pdf(
             "Content-Disposition": f"attachment; filename=vitascreen_report_{assessment_id[:8]}.pdf"
         }
     )
-
-@router.get("/compare/{id1}/{id2}", response_model=ComparisonResponse)
-def compare_assessments(
-    id1: str,
-    id2: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    a1 = db.query(Assessment).filter(Assessment.id == id1, Assessment.user_id == current_user.id).first()
-    a2 = db.query(Assessment).filter(Assessment.id == id2, Assessment.user_id == current_user.id).first()
-
-    if not a1 or not a2:
-        raise HTTPException(status_code=404, detail="One or both assessments not found.")
-
-    # Order chronologically (a_old, a_new)
-    if a1.created_at > a2.created_at:
-        a_old, a_new = a2, a1
-    else:
-        a_old, a_new = a1, a2
-
-    score_diff = round(a_new.risk_score - a_old.risk_score, 3)
-    if score_diff > 0.05:
-        change_label = "Increased"
-        summary_msg = f"Your screening risk category has increased compared with your previous assessment on {a_old.created_at.strftime('%b %d, %Y')}."
-    elif score_diff < -0.05:
-        change_label = "Decreased"
-        summary_msg = f"Your screening risk score has improved compared with your previous assessment on {a_old.created_at.strftime('%b %d, %Y')}."
-    else:
-        change_label = "Stable"
-        summary_msg = "Your overall screening risk profile remains stable between assessments."
-
-    # Compare answers to highlight changed input factors
-    changed_factors = []
-    old_s1 = a_old.stage1_answers or {}
-    new_s1 = a_new.stage1_answers or {}
-
-    for k in set(list(old_s1.keys()) + list(new_s1.keys())):
-        v_old = old_s1.get(k)
-        v_new = new_s1.get(k)
-        if v_old != v_new:
-            changed_factors.append({
-                "factor_key": k,
-                "factor_name": k.replace("_", " ").title(),
-                "previous_value": str(v_old),
-                "current_value": str(v_new)
-            })
-
-    return {
-        "assessment_1": a_old,
-        "assessment_2": a_new,
-        "risk_change_label": change_label,
-        "score_difference": score_diff,
-        "changed_factors": changed_factors,
-        "summary_message": summary_msg
-    }

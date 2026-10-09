@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { api } from '../api/client';
 import RiskBadge from '../components/RiskBadge';
 import FactorChart from '../components/FactorChart';
-import DoctorMap from '../components/DoctorMap';
+import ErrorBoundary from '../components/ErrorBoundary';
+const DoctorMap = lazy(() => import('../components/DoctorMap'));
 import {
   Download, ArrowLeft, Heart, Droplets, Gauge, ShieldAlert,
   Wind, UserCheck, AlertCircle, CheckCircle2, FileText, Share2
@@ -239,7 +240,11 @@ export default function ResultsView({ assessmentId, setView }) {
       )}
 
       {/* Recommended Doctors Live Map */}
-      <DoctorMap recommendedSpecialty={assessment.specialist_referral} />
+      <ErrorBoundary fallbackMessage="Map could not be loaded. Please check your internet connection.">
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading map...</div>}>
+          <DoctorMap recommendedSpecialty={assessment.specialist_referral} />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 }
