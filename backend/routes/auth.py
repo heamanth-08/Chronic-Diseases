@@ -9,7 +9,8 @@ router = APIRouter()
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.email == user_in.email.lower()).first()
+    clean_email = user_in.email.strip().lower()
+    existing_user = db.query(User).filter(User.email == clean_email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -17,9 +18,9 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         )
 
     user = User(
-        email=user_in.email.lower(),
+        email=clean_email,
         hashed_password=get_password_hash(user_in.password),
-        full_name=user_in.full_name
+        full_name=user_in.full_name.strip() if user_in.full_name else None
     )
     db.add(user)
     db.commit()
@@ -37,11 +38,18 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(user_in: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_in.email.lower()).first()
+    clean_email = user_in.email.strip().lower()
+    user = db.query(User).filter(User.email == clean_email).first()
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password."
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account has been deactivated."
         )
 
     has_profile = user.profile is not None
@@ -65,3 +73,4 @@ def get_me(current_user: User = Depends(get_current_user)):
         "has_profile": current_user.profile is not None,
         "created_at": current_user.created_at
     }
+

@@ -78,32 +78,36 @@ function AppContent() {
     );
   }
 
+  // Ensure view is valid for logged-in session
+  const validViews = ['dashboard', 'onboarding', 'stage1', 'stage2', 'results', 'history', 'comparison', 'profile'];
+  const activeView = validViews.includes(currentView) ? currentView : 'dashboard';
+
   return (
     <div className="app-layout">
-      <Navbar currentView={currentView} setView={setView} />
+      <Navbar currentView={activeView} setView={setView} />
       <main className="main-content">
-        {currentView === 'dashboard' && (
+        {activeView === 'dashboard' && (
           <Dashboard setView={setView} setSelectedAssessmentId={setSelectedAssessmentId} />
         )}
-        {currentView === 'onboarding' && (
+        {activeView === 'onboarding' && (
           <Onboarding setView={setView} />
         )}
-        {currentView === 'stage1' && (
+        {activeView === 'stage1' && (
           <Stage1Screening setView={setView} setSelectedAssessmentId={setSelectedAssessmentId} />
         )}
-        {currentView === 'stage2' && (
+        {activeView === 'stage2' && (
           <Stage2Screening setView={setView} setSelectedAssessmentId={setSelectedAssessmentId} />
         )}
-        {currentView === 'results' && (
+        {activeView === 'results' && (
           <ResultsView assessmentId={selectedAssessmentId} setView={setView} />
         )}
-        {currentView === 'history' && (
+        {activeView === 'history' && (
           <HistoryView setView={setView} setSelectedAssessmentId={setSelectedAssessmentId} setCompareIds={setCompareIds} />
         )}
-        {currentView === 'comparison' && (
+        {activeView === 'comparison' && (
           <ComparisonView id1={compareId1} id2={compareId2} setView={setView} />
         )}
-        {currentView === 'profile' && (
+        {activeView === 'profile' && (
           <ProfileSettings setView={setView} />
         )}
       </main>

@@ -18,14 +18,24 @@ export async function request(endpoint, options = {}) {
   if (response.status === 401) {
     localStorage.removeItem('vitascreen_token');
     localStorage.removeItem('vitascreen_user');
-    window.dispatchEvent(new Event('auth-logout'));
+    if (endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+      window.dispatchEvent(new Event('auth-logout'));
+    }
   }
 
   if (!response.ok) {
     let errorMsg = 'An unexpected error occurred.';
     try {
       const errorData = await response.json();
-      errorMsg = errorData.detail || errorData.message || errorMsg;
+      if (typeof errorData.detail === 'string') {
+        errorMsg = errorData.detail;
+      } else if (Array.isArray(errorData.detail)) {
+        errorMsg = errorData.detail.map(e => (typeof e === 'string' ? e : e.msg || e.detail || JSON.stringify(e))).join('. ');
+      } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+        errorMsg = JSON.stringify(errorData.detail);
+      } else if (errorData.message) {
+        errorMsg = typeof errorData.message === 'string' ? errorData.message : JSON.stringify(errorData.message);
+      }
     } catch (e) {
       // Non-JSON response
     }

@@ -37,7 +37,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const data = await api.login({ email, password });
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const data = await api.login({ email: cleanEmail, password });
     localStorage.setItem('vitascreen_token', data.access_token);
     const userObj = {
       id: data.user_id,
@@ -51,7 +52,9 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (email, password, full_name) => {
-    const data = await api.register({ email, password, full_name });
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanName = (full_name || '').trim();
+    const data = await api.register({ email: cleanEmail, password, full_name: cleanName });
     localStorage.setItem('vitascreen_token', data.access_token);
     const userObj = {
       id: data.user_id,
