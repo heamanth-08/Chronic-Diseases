@@ -10,6 +10,8 @@ import {
   TrendingUp, TrendingDown, Minus, Calendar, Activity
 } from 'lucide-react';
 
+import SmartwatchWidget from '../components/SmartwatchWidget';
+
 const ICON_MAP = {
   Heart: Heart,
   Droplets: Droplets,
@@ -70,7 +72,12 @@ export default function Dashboard({ setView, setSelectedAssessmentId }) {
   }
 
   if (!data || data.total_assessments === 0) {
-    return <EmptyState onStart={handleStartAnalysis} />;
+    return (
+      <div className="fade-in">
+        <SmartwatchWidget />
+        <EmptyState onStart={handleStartAnalysis} />
+      </div>
+    );
   }
 
   const lastDateFormatted = data.last_analysis_date
@@ -118,6 +125,9 @@ export default function Dashboard({ setView, setSelectedAssessmentId }) {
           </div>
         </div>
       )}
+
+      {/* Smartwatch Integration Widget */}
+      <SmartwatchWidget />
 
       {/* 5 Disease Categories Overview Cards */}
       <div style={{ marginBottom: '2.5rem' }}>

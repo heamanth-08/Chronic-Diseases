@@ -41,70 +41,34 @@ DISEASE_METADATA = {
 }
 
 FACTOR_PLAIN_TEXT = {
+    # Stage 1 factors
     "age": "Age factor (natural physiological baseline)",
+    "sex": "Biological sex hormonal baseline",
     "bmi": "Body Mass Index (BMI category balance)",
-    "smoking_status": "Smoking exposure history",
-    "physical_activity": "Daily physical activity level",
-    "alcohol_use": "Alcohol consumption frequency",
-    "high_bp_history": "History of blood pressure fluctuations",
-    "chest_pain_exertion": "Discomfort reported during physical exertion",
-    "shortness_of_breath": "Breathlessness during standard activity",
-    "high_blood_sugar_history": "Elevated blood sugar observation history",
-    "excessive_thirst_urination": "Increased hydration need & urination pattern",
-    "fatigue_weakness": "Persistent generalized fatigue",
-    "swollen_ankles_feet": "Fluid retention or peripheral swelling",
-    "chronic_cough_wheezing": "Persistent cough or audible wheezing",
-    "family_history_score": "Reported family health history background",
-    "chest_tightness_rest": "Resting chest sensation or discomfort",
-    "radiating_pain_arm_jaw": "Upper body radiating sensations",
-    "heart_palpitations": "Irregular heartbeat sensations",
-    "dizziness_lightheadedness": "Lightheadedness or postural dizziness",
-    "exercise_tolerance_drops": "Change in physical stamina or exertion capacity",
-    "high_cholesterol_diagnosed": "History of lipid / cholesterol observations",
-    "sleep_apnea_snoring": "Sleep breathing disruption or snoring",
-    "stress_level_high": "Elevated daily psychosocial stress",
-    "parent_early_heart_attack": "First-degree family cardiovascular history",
-    "daily_sodium_intake_high": "Dietary sodium or salt preference",
-    "blurred_vision_episodes": "Occasional blurred vision episodes",
-    "slow_healing_cuts": "Slower minor skin wound recovery",
-    "tingling_numbness_feet": "Peripheral sensations or tingling in feet",
-    "frequent_skin_infections": "Recurring skin or cutaneous sensitivities",
-    "increased_hunger_unexplained": "Frequent unexplained hunger intervals",
-    "unexplained_weight_loss": "Rapid unexplained body weight shifts",
-    "waist_circumference_high": "Central abdominal waist proportion",
-    "gestational_diabetes_history": "History of metabolic fluctuations during pregnancy",
-    "sweet_cravings_post_meal": "Post-meal glucose cravings",
-    "darkened_skin_folds": "Skin crease texture or pigmentation changes",
-    "morning_headaches_frequent": "Early morning tension or occipital headaches",
-    "pulsating_ear_sensation": "Pulsatile or whooshing sensation in ears",
-    "frequent_nosebleeds": "Occasional unexplained nosebleeds",
-    "vision_blurring_sudden": "Sudden transient visual haze",
-    "salt_craving_sensitivity": "High sensitivity or preference for dietary salt",
-    "chronic_stress_work": "Sustained occupational or emotional stress",
-    "poor_sleep_quality": "Fragmented or unrefreshing sleep quality",
-    "family_early_hypertension": "Family history of early blood pressure elevation",
-    "sedentary_desk_hours_high": "Prolonged uninterrupted sedentary desk hours",
-    "coffee_energy_drink_high": "High caffeine or stimulant intake frequency",
-    "foamy_bubbly_urine": "Persistent frothiness or bubbles in urine",
-    "facial_puffiness_morning": "Morning periorbital or facial puffiness",
-    "loss_of_appetite_metallic_taste": "Altered taste sensations or reduced appetite",
-    "persistent_skin_itching": "Generalized unexplained skin itching",
-    "muscle_cramps_night": "Nocturnal leg or calf muscle cramps",
-    "frequent_nsaid_painkiller_use": "Regular use of pain medications or NSAIDs",
-    "recurrent_urinary_infections": "History of urinary tract sensitivities",
-    "family_kidney_disease": "Family history of renal health conditions",
-    "decreased_urine_output": "Noticed changes in daily fluid output volume",
-    "unexplained_nausea_vomiting": "Occasional nausea unrelated to meals",
-    "daily_morning_phlegm": "Daily morning mucus or phlegm clearance",
-    "wheezing_cold_air_exercise": "Airway sensitivity to cold air or exercise",
-    "breathless_climbing_stairs": "Shortness of breath on mild stair climbing",
-    "frequent_chest_infections": "Frequency of seasonal chest or bronchial episodes",
-    "dust_smoke_chemical_exposure": "Environmental dust, smoke, or vapor exposure",
-    "nighttime_cough_awakening": "Nocturnal cough interrupting sleep",
-    "chest_heaviness_allergies": "Allergic chest tightness or respiratory reactivity",
-    "childhood_asthma_history": "History of childhood respiratory reactivity",
-    "pets_indoor_mold_exposure": "Indoor allergens, pet dander, or dampness exposure",
-    "recovery_time_colds_long": "Prolonged recovery from standard seasonal colds"
+    "smoker": "Tobacco & smoking exposure status",
+    "phys_activity": "Weekly physical activity level",
+    "sleep_hours": "Average nightly sleep duration",
+    "high_bp": "History of high blood pressure diagnosis",
+    "high_chol": "History of elevated cholesterol diagnosis",
+    "family_history": "Reported family chronic illness background",
+    "weight_change": "Recent unexplained weight fluctuation",
+    "tired_energy": "Persistent unrefreshing fatigue or low energy",
+    "breath_chest_discomfort": "Exertional breathlessness or chest discomfort",
+    "increased_thirst_urination": "Increased thirst or frequent urination pattern",
+    "swelling": "Fluid retention or peripheral/facial swelling",
+    "gen_health": "Self-rated general health baseline",
+
+    # Stage 2 factors (10 in-depth clinical questions)
+    "symptom_duration": "Longstanding symptom chronicity (>1 month)",
+    "symptom_frequency": "Frequent recurring symptoms (most days or daily)",
+    "worse_with_exertion": "Symptoms worsening significantly on physical exertion",
+    "sleep_disturbance": "Symptoms disturbing sleep or waking during night",
+    "unexplained_body_changes": "Noticed physical changes (swelling/skin/fluid retention)",
+    "family_chronic_diagnosis": "First-degree family history of serious chronic illness",
+    "taking_medication": "Current use of regular prescription medications or supplements",
+    "doctor_visit_12m": "Prior medical consultation for related concerns in past 12 months",
+    "daily_life_impact": "High functional impairment on daily routine & activities",
+    "has_additional_concerns": "Additional specific symptoms & patient notes reported"
 }
 
 class MLService:
@@ -137,11 +101,33 @@ class MLService:
         else:
             return "Elevated"
 
+    def _parse_feature_val(self, key: str, val: Any) -> float:
+        if val is None:
+            return 0.0
+        if isinstance(val, bool):
+            return 1.0 if val else 0.0
+        if isinstance(val, (int, float)):
+            return float(val)
+        if isinstance(val, list):
+            # For multiselect: count selected items excluding 'none'
+            valid_items = [x for x in val if x and str(x).lower() != 'none']
+            return float(len(valid_items))
+        if isinstance(val, str):
+            val_clean = val.strip().lower()
+            if val_clean in ["male", "yes", "true", "severe", "always"]:
+                return 1.0
+            if val_clean in ["female", "no", "false", "none", "nothing to add", "never", "rarely"]:
+                return 0.0
+            try:
+                return float(val)
+            except ValueError:
+                return 1.0 if len(val_clean) > 0 and val_clean != "nothing to add" else 0.0
+        return 0.0
+
     def predict_stage1(self, answers: Dict[str, Any], profile_data: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Runs all 5 disease models simultaneously on the 15 Stage 1 inputs.
         """
-        # Merge profile if available
         combined = dict(answers)
         if profile_data:
             for k, v in profile_data.items():
@@ -151,14 +137,8 @@ class MLService:
         # Build feature vector
         vector = []
         for feat in STAGE1_FEATURES:
-            val = combined.get(feat, 0)
-            if isinstance(val, bool):
-                val = 1 if val else 0
-            elif isinstance(val, (int, float)):
-                val = float(val)
-            else:
-                val = 0.0
-            vector.append(val)
+            val = combined.get(feat)
+            vector.append(self._parse_feature_val(feat, val))
 
         df_input = pd.DataFrame([vector], columns=STAGE1_FEATURES)
 
@@ -174,8 +154,8 @@ class MLService:
             if model is not None:
                 try:
                     prob = float(model.predict_proba(df_input)[0][1])
-                except Exception:
-                    # Fallback rule-based score
+                except Exception as e:
+                    print(f"Error predicting stage 1 for {disease}: {e}")
                     prob = 0.25
             else:
                 prob = 0.20
@@ -183,6 +163,7 @@ class MLService:
             prob = round(prob, 3)
             level = self.get_risk_level(prob)
 
+            # Stage 2 triggered when patient risk is elevated or moderate
             if level in ["Moderate", "Elevated"]:
                 requires_stage2 = True
 
@@ -221,38 +202,38 @@ class MLService:
         stage2_answers: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Runs detailed Stage 2 model + explains top factors via feature importance.
+        Runs detailed Stage 2 model with the 10 in-depth clinical factors.
         """
-        feats = STAGE2_FEATURES.get(disease, [])
+        # Map user Stage 2 answers to feature vector
         vector = []
-        for f in feats:
-            val = stage2_answers.get(f, 0)
-            if isinstance(val, bool):
-                val = 1 if val else 0
-            elif isinstance(val, (int, float)):
-                val = float(val)
+        for feat in STAGE2_FEATURES:
+            if feat == "has_additional_concerns":
+                notes_val = stage2_answers.get("additional_notes", stage2_answers.get("has_additional_concerns", ""))
+                parsed_val = 1.0 if isinstance(notes_val, str) and notes_val.strip() and notes_val.strip().lower() != "nothing to add" else self._parse_feature_val(feat, notes_val)
             else:
-                val = 0.0
-            vector.append(val)
+                raw_val = stage2_answers.get(feat, 0)
+                parsed_val = self._parse_feature_val(feat, raw_val)
+            vector.append(parsed_val)
 
-        df_input = pd.DataFrame([vector], columns=feats)
+        df_input = pd.DataFrame([vector], columns=STAGE2_FEATURES)
         model = self.stage2_models.get(disease)
 
         if model is not None:
             try:
                 prob = float(model.predict_proba(df_input)[0][1])
-            except Exception:
+            except Exception as e:
+                print(f"Error in stage 2 prediction: {e}")
                 prob = 0.55
         else:
             prob = 0.50
 
-        # Refine with Stage 1 initial score weight (70% Stage 2, 30% Stage 1)
+        # Blended score (65% Stage 2 clinical depth, 35% Stage 1 screening)
         s1_score = stage1_results.get(disease, {}).get("score", 0.5) if isinstance(stage1_results, dict) else 0.5
-        blended_score = round(0.70 * prob + 0.30 * s1_score, 3)
+        blended_score = round(0.65 * prob + 0.35 * s1_score, 3)
         level = self.get_risk_level(blended_score)
 
-        # Compute SHAP / Feature importances for explainability
-        top_factors = self._compute_feature_contributions(disease, df_input, stage1_answers)
+        # Compute Explainability / Contributing factors
+        top_factors = self._compute_feature_contributions(disease, df_input, stage1_answers, stage2_answers)
 
         meta = DISEASE_METADATA.get(disease, DISEASE_METADATA["heart"])
         specialist = meta["specialist"]
@@ -260,12 +241,12 @@ class MLService:
         if level == "Elevated":
             recommendation = (
                 "Your responses indicate an elevated risk during this screening. "
-                f"Consider consulting an appropriate healthcare professional ({specialist}) for further evaluation."
+                f"Consider consulting an appropriate healthcare professional ({specialist}) for further diagnostic evaluation."
             )
         elif level == "Moderate":
             recommendation = (
                 "Some responses indicate moderate risk factors. "
-                "We recommend monitoring your symptoms regularly and maintaining proactive lifestyle habits."
+                "We recommend monitoring your symptoms regularly and maintaining proactive lifestyle and dietary habits."
             )
         else:
             recommendation = (
@@ -281,7 +262,7 @@ class MLService:
                     **cat_val,
                     "score": blended_score,
                     "level": level,
-                    "summary": f"Detailed assessment indicates {level.lower()} risk profile for {meta['name']}."
+                    "summary": f"In-depth assessment indicates {level.lower()} risk profile for {meta['name']}."
                 }
             else:
                 updated_all_categories[cat_id] = cat_val
@@ -297,12 +278,17 @@ class MLService:
             "consultation_recommendation": recommendation
         }
 
-    def _compute_feature_contributions(self, disease: str, df_input: pd.DataFrame, stage1_answers: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _compute_feature_contributions(
+        self,
+        disease: str,
+        df_input: pd.DataFrame,
+        stage1_answers: Dict[str, Any],
+        stage2_answers: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
-        Computes calibrated feature importance / SHAP weights for top contributing factors.
+        Computes calibrated feature importance / weights for top contributing factors.
         """
         factors = []
-        feats = STAGE2_FEATURES.get(disease, [])
         model = self.stage2_models.get(disease)
 
         importances = None
@@ -316,12 +302,12 @@ class MLService:
             except Exception:
                 pass
 
-        if importances is None or len(importances) != len(feats):
-            importances = np.linspace(0.2, 0.05, len(feats))
+        if importances is None or len(importances) != len(STAGE2_FEATURES):
+            importances = np.linspace(0.20, 0.05, len(STAGE2_FEATURES))
 
         row_vals = df_input.iloc[0].to_dict()
 
-        for idx, feat_name in enumerate(feats):
+        for idx, feat_name in enumerate(STAGE2_FEATURES):
             user_val = row_vals.get(feat_name, 0)
             imp = float(importances[idx])
             if user_val > 0:
@@ -333,25 +319,37 @@ class MLService:
                     "plain_text": plain_desc
                 })
 
-        # Also incorporate high impact Stage 1 factors if reported
-        for s1_k in ["high_bp_history", "chest_pain_exertion", "high_blood_sugar_history", "chronic_cough_wheezing", "smoking_status"]:
-            if stage1_answers.get(s1_k) in [1, 2, True, "current", "yes"]:
+        # Incorporate prominent Stage 1 factors if reported
+        s1_impact_map = [
+            ("high_bp", 3, 24.0),
+            ("high_chol", 2, 20.0),
+            ("breath_chest_discomfort", 2, 25.0),
+            ("increased_thirst_urination", 2, 22.0),
+            ("swelling", 2, 20.0),
+            ("smoker", 2, 18.0),
+            ("tired_energy", 2, 15.0),
+            ("gen_health", 3, 14.0)
+        ]
+
+        for s1_k, threshold, weight in s1_impact_map:
+            val = self._parse_feature_val(s1_k, stage1_answers.get(s1_k))
+            if val >= threshold:
                 plain_desc = FACTOR_PLAIN_TEXT.get(s1_k, s1_k.replace("_", " ").title())
                 factors.append({
                     "factor": s1_k.replace("_", " ").title(),
-                    "impact": 22.5,
+                    "impact": weight,
                     "direction": "increases_risk",
                     "plain_text": plain_desc
                 })
 
-        # Sort by impact descending, take top 4-5
+        # Sort by impact descending, take top 5
         factors.sort(key=lambda x: x["impact"], reverse=True)
         if not factors:
             factors.append({
                 "factor": "Baseline Lifestyle Factors",
                 "impact": 10.0,
                 "direction": "neutral",
-                "plain_text": "Balanced physical activity and lifestyle responses"
+                "plain_text": "Balanced physical activity and healthy lifestyle responses"
             })
 
         return factors[:5]

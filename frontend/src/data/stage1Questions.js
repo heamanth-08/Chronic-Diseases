@@ -1,158 +1,174 @@
 export const stage1Questions = [
   {
     id: "age",
-    question: "What is your current age?",
-    why: "Age is a primary physiological baseline for chronic cardiovascular and metabolic disease risk models.",
+    question: "What is your age?",
+    why: "Age is a primary baseline indicator for chronic cardiovascular, metabolic, and renal risk models.",
     type: "number",
     min: 18,
     max: 100,
-    defaultValue: 35,
+    placeholder: "e.g. 35",
     unit: "years"
   },
   {
-    id: "gender",
+    id: "sex",
     question: "What is your biological sex?",
-    why: "Certain chronic conditions exhibit distinct prevalence patterns based on biological hormonal profiles.",
-    type: "select",
+    why: "Certain chronic health conditions exhibit distinct prevalence patterns influenced by biological hormonal factors.",
+    type: "radio",
     options: [
-      { label: "Female", value: 0 },
-      { label: "Male", value: 1 }
+      { label: "Male", value: 1 },
+      { label: "Female", value: 0 }
     ]
   },
   {
     id: "bmi",
-    question: "What is your approximate Body Mass Index (BMI)?",
-    why: "Body Mass Index reflects weight-to-height ratio, an established indicator for metabolic and cardiac strain.",
-    type: "number",
-    min: 15.0,
-    max: 55.0,
-    step: 0.1,
-    defaultValue: 24.5,
-    unit: "kg/m²"
+    question: "What is your height and weight?",
+    why: "Height and weight determine your Body Mass Index (BMI), an essential clinical metric for metabolic and cardiovascular strain.",
+    type: "bmi_calculator",
+    defaultValue: 24.2
   },
   {
-    id: "smoking_status",
-    question: "What is your current tobacco / smoking status?",
-    why: "Tobacco smoke causes vascular endothelial inflammation and chronic bronchial deterioration.",
+    id: "smoker",
+    question: "Do you currently smoke or use any tobacco products?",
+    why: "Tobacco smoke causes vascular endothelial inflammation, arterial stiffening, and chronic bronchial deterioration.",
     type: "radio",
     options: [
-      { label: "Never smoked", value: 0 },
-      { label: "Former smoker (Quit > 12 months ago)", value: 1 },
-      { label: "Current regular or occasional smoker", value: 2 }
+      { label: "Never", value: 0 },
+      { label: "Former smoker", value: 1 },
+      { label: "Current smoker", value: 2 }
     ]
   },
   {
-    id: "physical_activity",
-    question: "How would you describe your typical weekly physical activity?",
-    why: "Physical activity enhances insulin sensitivity, vascular compliance, and cardiorespiratory endurance.",
+    id: "phys_activity",
+    question: "How physically active are you on a weekly basis?",
+    why: "Regular exercise significantly enhances insulin sensitivity, vascular compliance, and cardiovascular endurance.",
     type: "radio",
     options: [
-      { label: "Low / Sedentary (Minimal intentional exercise)", value: 0 },
-      { label: "Moderate (1–3 sessions or brisk walking weekly)", value: 1 },
-      { label: "High / Active (4+ exercise sessions or physically demanding work)", value: 2 }
+      { label: "Sedentary (no exercise)", value: 0 },
+      { label: "Light (1–2 days)", value: 1 },
+      { label: "Moderate (3–4 days)", value: 2 },
+      { label: "Active (5+ days)", value: 3 }
     ]
   },
   {
-    id: "alcohol_use",
-    question: "How often do you consume alcoholic beverages?",
-    why: "Alcohol intake impacts blood pressure regulation, liver function, and metabolic pathways.",
+    id: "sleep_hours",
+    question: "How many hours of sleep do you get on average per night?",
+    why: "Sleep duration strongly regulates circadian cortisol release, autonomic blood pressure tone, and glucose metabolism.",
     type: "radio",
     options: [
-      { label: "None / Never", value: 0 },
-      { label: "Occasional (1–2 drinks per week or socially)", value: 1 },
-      { label: "Regular / Moderate to High (3+ drinks weekly)", value: 2 }
+      { label: "Less than 5 hours", value: 0 },
+      { label: "5–6 hours", value: 1 },
+      { label: "7–8 hours (Optimal)", value: 2 },
+      { label: "More than 9 hours", value: 3 }
     ]
   },
   {
-    id: "high_bp_history",
-    question: "Have you ever been told by a doctor or noticed that your blood pressure was elevated?",
-    why: "Sustained high blood pressure places strain on arteries, kidneys, and the heart muscle.",
+    id: "high_bp",
+    question: "Have you ever been told by a doctor that you have high blood pressure?",
+    why: "Sustained high blood pressure places direct mechanical strain on coronary vessels, kidneys, and cerebral circulation.",
     type: "radio",
     options: [
-      { label: "No / Normal blood pressure", value: 0 },
-      { label: "Yes / Elevated or Borderline High", value: 1 }
+      { label: "No", value: 0 },
+      { label: "Not sure", value: 1 },
+      { label: "Only during pregnancy", value: 2 },
+      { label: "Yes", value: 3 }
     ]
   },
   {
-    id: "chest_pain_exertion",
-    question: "Do you ever experience tightness, pressure, or discomfort in your chest during exertion (e.g. climbing stairs)?",
-    why: "Exertional chest sensations may reflect changes in cardiovascular oxygen delivery.",
+    id: "high_chol",
+    question: "Have you ever been told by a doctor that you have high cholesterol?",
+    why: "Elevated circulating lipids and LDL accelerate atherosclerotic plaque build-up in arterial walls.",
     type: "radio",
     options: [
-      { label: "No, never", value: 0 },
-      { label: "Yes, occasionally or frequently", value: 1 }
+      { label: "No", value: 0 },
+      { label: "Never checked", value: 1 },
+      { label: "Yes", value: 2 }
     ]
   },
   {
-    id: "shortness_of_breath",
-    question: "Do you experience unexplained breathlessness during routine daily activities?",
-    why: "Shortness of breath can be an early indicator of both cardiorespiratory and pulmonary workload limits.",
+    id: "family_history",
+    question: "Do you have a family history of any of the following conditions?",
+    why: "Genetic predisposition significantly influences individual susceptibility across all major chronic disease categories.",
+    type: "multiselect",
+    options: [
+      { label: "Heart disease", value: "heart" },
+      { label: "Diabetes", value: "diabetes" },
+      { label: "High blood pressure", value: "hypertension" },
+      { label: "Kidney disease", value: "kidney" },
+      { label: "Lung disease", value: "respiratory" },
+      { label: "None of the above", value: "none" }
+    ],
+    defaultValue: ["none"]
+  },
+  {
+    id: "weight_change",
+    question: "Have you noticed any unexplained weight changes in the past 3 months?",
+    why: "Rapid unexplained weight fluctuations can signal fluid retention, endocrine shifts, or insulin dysregulation.",
     type: "radio",
     options: [
-      { label: "No, breath is normal", value: 0 },
-      { label: "Yes, noticeably breathless", value: 1 }
+      { label: "No change", value: 0 },
+      { label: "Significant weight gain", value: 1 },
+      { label: "Significant weight loss", value: 2 }
     ]
   },
   {
-    id: "high_blood_sugar_history",
-    question: "Have you previously had an elevated blood sugar or pre-diabetes reading?",
-    why: "Elevated fasting glucose or HbA1c is a strong early indicator of insulin resistance progression.",
+    id: "tired_energy",
+    question: "How often do you feel unusually tired or low on energy without a clear reason?",
+    why: "Chronic unrefreshing fatigue is a shared cross-system symptom of metabolic, renal, and cardiac strain.",
     type: "radio",
     options: [
-      { label: "No / Normal readings", value: 0 },
-      { label: "Yes / Borderline or elevated", value: 1 }
+      { label: "Never", value: 0 },
+      { label: "Sometimes", value: 1 },
+      { label: "Often", value: 2 },
+      { label: "Almost always", value: 3 }
     ]
   },
   {
-    id: "excessive_thirst_urination",
-    question: "Do you regularly experience excessive thirst, dry mouth, or unusually frequent urination (especially at night)?",
-    why: "The kidneys excrete excess circulating glucose with water, triggering thirst and frequent voiding.",
+    id: "breath_chest_discomfort",
+    question: "Do you experience shortness of breath or chest discomfort during normal daily activities?",
+    why: "Exertional breathlessness or chest pressure reflects reduced cardiorespiratory reserve or pulmonary limitation.",
     type: "radio",
     options: [
-      { label: "No, normal thirst and urination", value: 0 },
-      { label: "Yes, frequent thirst or night urination", value: 1 }
+      { label: "Never", value: 0 },
+      { label: "Sometimes", value: 1 },
+      { label: "Often", value: 2 },
+      { label: "Always", value: 3 }
     ]
   },
   {
-    id: "fatigue_weakness",
-    question: "Do you experience ongoing persistent fatigue that does not improve after rest?",
-    why: "Chronic fatigue is a shared marker across metabolic, renal, and cardiopulmonary systems.",
+    id: "increased_thirst_urination",
+    question: "Do you feel increased thirst or urinate more frequently than usual?",
+    why: "Polydipsia and polyuria are classic osmotic indicators of elevated circulating blood sugar levels.",
     type: "radio",
     options: [
-      { label: "No, energy levels are steady", value: 0 },
-      { label: "Yes, persistent fatigue/low energy", value: 1 }
+      { label: "Never", value: 0 },
+      { label: "Sometimes", value: 1 },
+      { label: "Often", value: 2 },
+      { label: "Always", value: 3 }
     ]
   },
   {
-    id: "swollen_ankles_feet",
-    question: "Have you noticed persistent swelling or fluid retention around your ankles, feet, or eyelids?",
-    why: "Peripheral edema can occur when renal filtration or venous return efficiency changes.",
+    id: "swelling",
+    question: "Have you noticed any swelling in your feet, ankles, face, or around your eyes?",
+    why: "Peripheral edema and facial puffiness commonly indicate fluid retention associated with kidney or heart stress.",
     type: "radio",
     options: [
-      { label: "No swelling", value: 0 },
-      { label: "Yes, noticeable swelling", value: 1 }
+      { label: "Never", value: 0 },
+      { label: "Sometimes", value: 1 },
+      { label: "Often", value: 2 },
+      { label: "Always", value: 3 }
     ]
   },
   {
-    id: "chronic_cough_wheezing",
-    question: "Do you have a lingering cough, wheezing sound while breathing, or recurring morning mucus?",
-    why: "Chronic airway mucus and audible wheezing are hallmark indicators of airway hypersensitivity or COPD.",
+    id: "gen_health",
+    question: "How would you rate your overall health right now?",
+    why: "Self-rated general health has been clinically validated as a powerful predictor of future chronic health trajectories.",
     type: "radio",
     options: [
-      { label: "No chronic cough or wheeze", value: 0 },
-      { label: "Yes, recurring cough or wheezing", value: 1 }
-    ]
-  },
-  {
-    id: "family_history_score",
-    question: "Do any immediate family members (parents or siblings) have chronic heart disease, diabetes, hypertension, or kidney disease?",
-    why: "Genetic predisposition significantly influences individual baseline risk across all major chronic categories.",
-    type: "radio",
-    options: [
-      { label: "None known", value: 0 },
-      { label: "1 family member", value: 1 },
-      { label: "2 family members", value: 2 },
-      { label: "3 or more family members", value: 3 }
+      { label: "Excellent", value: 0 },
+      { label: "Very good", value: 1 },
+      { label: "Good", value: 2 },
+      { label: "Fair", value: 3 },
+      { label: "Poor", value: 4 }
     ]
   }
 ];
